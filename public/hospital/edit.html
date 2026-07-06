@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重庆市沙坪坝区陈家桥医院患者满意度调查</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: #f5f7fb;
+            color: #222;
+        }
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+        h1 {
+            margin: 0 0 20px;
+            font-size: 28px;
+            color: #114a8b;
+        }
+        .tip {
+            margin-bottom: 18px;
+            padding: 10px 14px;
+            background: #eef6ff;
+            border-left: 4px solid #2d7be5;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(260px, 1fr));
+            gap: 16px 20px;
+        }
+        .full {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .required::after {
+            content: " *";
+            color: #d93025;
+        }
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cfd6e4;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #2d7be5;
+        }
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+        .section-title {
+            grid-column: 1 / -1;
+            margin: 10px 0 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e6ebf2;
+            font-size: 18px;
+            color: #114a8b;
+        }
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 18px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #2d7be5;
+            color: #fff;
+        }
+        .btn-secondary {
+            background: #e9eef7;
+            color: #333;
+        }
+        #message {
+            grid-column: 1 / -1;
+            display: none;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .success {
+            display: block !important;
+            background: #edf9f0;
+            color: #127a2f;
+            border: 1px solid #b7e2c1;
+        }
+        .error {
+            display: block !important;
+            background: #fff1f0;
+            color: #c62828;
+            border: 1px solid #f3c1bd;
+        }
+        .muted {
+            color: #666;
+            font-size: 13px;
+        }
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>重庆市沙坪坝区陈家桥医院患者满意度调查</h1>
+    <form id="surveyForm">
+        <div id="message" class=""></div>
+
+        <div>
+            <label for="patientName" class="required">患者姓名</label>
+            <input type="text" id="patientName" name="患者姓名" maxlength="100" required>
+        </div>
+
+        <div>
+            <label for="department" class="required">就诊科室</label>
+            <select id="department" name="就诊科室" required>
+                <option value="">请选择就诊科室</option>
+                <option value="便民门诊">便民门诊</option>
+                <option value="儿科">儿科</option>
+                <option value="耳鼻喉">耳鼻喉</option>
+                <option value="耳鼻喉科">耳鼻喉科</option>
+                <option value="耳鼻咽喉">耳鼻咽喉</option>
+                <option value="发热门诊">发热门诊</option>
+                <option value="妇产科">妇产科</option>
+                <option value="妇科">妇科</option>
+                <option value="感染科">感染科</option>
+                <option value="骨科">骨科</option>
+                <option value="呼吸科">呼吸科</option>
+                <option value="急诊科">急诊科</option>
+                <option value="介入科">介入科</option>
+                <option value="康复科">康复科</option>
+                <option value="康复医学">康复医学</option>
+                <option value="口腔科">口腔科</option>
+                <option value="老年科">老年科</option>
+                <option value="泌尿科">泌尿科</option>
+                <option value="泌尿外科">泌尿外科</option>
+                <option value="内分泌">内分泌</option>
+                <option value="内分泌科">内分泌科</option>
+                <option value="内科">内科</option>
+                <option value="皮肤科">皮肤科</option>
+                <option value="普外科">普外科</option>
+                <option value="全科">全科</option>
+                <option value="神经科">神经科</option>
+                <option value="肾内科">肾内科</option>
+                <option value="睡眠呼吸">睡眠呼吸</option>
+                <option value="睡眠科">睡眠科</option>
+                <option value="睡眠心理">睡眠心理</option>
+                <option value="疼痛科">疼痛科</option>
+                <option value="体检中心">体检中心</option>
+                <option value="消化科">消化科</option>
+                <option value="心内科">心内科</option>
+                <option value="心血管">心血管</option>
+                <option value="胸外科">胸外科</option>
+                <option value="眼科">眼科</option>
+                <option value="造口门诊">造口门诊</option>
+                <option value="中医科">中医科</option>
+                <option value="肿瘤科">肿瘤科</option>
+            </select>
+        </div>
+
+        <div class="section-title"></div>
+
+        <div>
+            <label for="score1">导诊/体检接待服务态度及效率</label>
+            <input type="number" id="score1" name="导诊/体检接待服务态度及效率" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="score2">接诊医生服务态度和沟通</label>
+            <input type="number" id="score2" name="接诊医生服务态度和沟通" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div class="section-title">辅助检科室</div>
+
+        <div>
+            <label for="lab">检验</label>
+            <input type="number" id="lab" name="检验" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="radiology">放射</label>
+            <input type="number" id="radiology" name="放射" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="ultrasound">超声</label>
+            <input type="number" id="ultrasound" name="超声" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="ecg">心电图</label>
+            <input type="number" id="ecg" name="心电图" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div class="full">
+            <label for="neuro">神经电生物室</label>
+            <input type="number" id="neuro" name="神经电生物室" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div class="section-title"></div>
+
+        <div>
+            <label for="score3">药房服务态度和用药指导</label>
+            <input type="number" id="score3" name="药房服务态度和用药指导" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="score4">收费员服务态度及效率</label>
+            <input type="number" id="score4" name="收费员服务态度及效率" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div class="full">
+            <label for="score5">其它</label>
+            <input type="number" id="score5" name="其它" min="1" max="10" step="1" placeholder="1~10，可为空">
+        </div>
+
+        <div>
+            <label for="redPacket">是否有收受红包情况</label>
+            <label><input type="radio" name="是否有收受红包情况" value="否" checked> 否</label>
+            <label><input type="radio" name="是否有收受红包情况" value="是"> 是</label>
+        </div>
+
+        <div class="full">
+            <label for="remark">有无意见或建议反馈(可填或不填)</label>
+            <textarea id="remark" name="备注" placeholder="可不填"></textarea>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn-primary">保存</button>
+            <button type="button" id="resetBtn" class="btn-secondary">清空表单</button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    const form = document.getElementById('surveyForm');
+    const messageBox = document.getElementById('message');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function showMessage(text, type) {
+        messageBox.textContent = text;
+        messageBox.className = type;
+    }
+
+    function clearMessage() {
+        messageBox.textContent = '';
+        messageBox.className = '';
+        messageBox.style.display = 'none';
+    }
+
+    function resetForm() {
+        form.reset();
+        clearMessage();
+        document.getElementById('patientName').focus();
+    }
+
+    function getTrimmedValue(name) {
+        const field = form.elements[name];
+        return field ? field.value.trim() : '';
+    }
+
+    function validateForm() {
+        const patientName = getTrimmedValue('患者姓名');
+        const department = getTrimmedValue('就诊科室');
+
+        if (!patientName) {
+            showMessage('患者姓名不能为空', 'error');
+            return false;
+        }
+        if (!department) {
+            showMessage('就诊科室不能为空', 'error');
+            return false;
+        }
+
+        const scoreFields = [
+            '导诊/体检接待服务态度及效率',
+            '接诊医生服务态度和沟通',
+            '药房服务态度和用药指导',
+            '收费员服务态度及效率',
+            '其它',
+            '检验',
+            '放射',
+            '超声',
+            '心电图',
+            '神经电生物室'
+        ];
+
+        for (const fieldName of scoreFields) {
+            const value = getTrimmedValue(fieldName);
+            if (value !== '') {
+                const num = Number(value);
+                if (!Number.isInteger(num) || num < 1 || num > 10) {
+                    showMessage('评分项必须为 1~10 的整数或留空', 'error');
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        clearMessage();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/hospital/api/save', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showMessage(result.message || '保存失败', 'error');
+                return;
+            }
+
+            showMessage(result.message || '保存成功', 'success');
+            form.reset();
+            document.getElementById('patientName').focus();
+        } catch (error) {
+            showMessage('请求失败，请稍后重试', 'error');
+        }
+    });
+
+    resetBtn.addEventListener('click', resetForm);
+</script>
+</body>
+</html>

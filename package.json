@@ -1,0 +1,11 @@
+{
+  "name": "hospital-survey",
+  "version": "1.0.0",
+  "description": "Patient satisfaction survey with Cloudflare Pages + D1",
+  "main": "index.js",
+  "scripts": {
+    "dev": "echo 'Use Pages Functions'"
+  },
+  "author": "",
+  "license": "MIT"
+}

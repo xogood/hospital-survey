@@ -1,0 +1,7 @@
+name = "hospital-survey"
+main = "src/index.js"  # 这里不需要，因为使用 Pages Functions
+
+[[d1_databases]]
+binding = "DB"         # 与环境变量名称对应
+database_name = "hospital-survey-db"
+database_id = "your-database-id"  # 创建 D1 后获得
