@@ -3,9 +3,6 @@ name = "hospital-survey"
 # 明确指定这是 Pages 项目，并指定静态文件目录
 pages_build_output_dir = "public"
 
-# 指定 Pages Functions 的入口（可选，但建议保留）
-main = "functions/_worker.js"
-
 # 兼容日期（必需）
 compatibility_date = "2026-07-06"
 
