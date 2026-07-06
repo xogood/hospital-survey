@@ -4,7 +4,7 @@ name = "hospital-survey"
 pages_build_output_dir = "public"
 
 # 兼容日期（必需）
-compatibility_date = "2026-07-07"
+compatibility_date = "2026-07-01"
 
 # D1 数据库绑定
 [[d1_databases]]
