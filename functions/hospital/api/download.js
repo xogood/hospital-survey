@@ -12,11 +12,11 @@ export async function onRequest(context) {
 
   try {
     const stmt = env.DB.prepare(
-      `SELECT id AS "序号", * FROM satisfaction_records WHERE month = ? ORDER BY id ASC`
+      `SELECT id, * FROM satisfaction_records WHERE month = ? ORDER BY id ASC`
     );
     const { results } = await stmt.bind(month).all();
 
-    // 定义 CSV 列头（与原有完全一致）
+    // 定义 CSV 列头
     const headers = [
       '序号',
       '调查日期',
@@ -37,22 +37,25 @@ export async function onRequest(context) {
     ];
 
     // 构建 CSV 内容
-    let csvContent = '\uFEFF' + headers.join(',') + '\n'; // BOM 处理 Excel 中文乱码
+    let csvContent = '\uFEFF' + headers.join(',') + '\n';
 
-    for (const row of results) {
+    results.forEach((row, index) => {
       const line = headers.map(col => {
-        let val = row[col];
+        let val;
+        if (col === '序号') {
+          val = index + 1; // 从1开始编号
+        } else {
+          val = row[col];
+        }
         if (val === null || val === undefined) val = '';
-        // 如果有逗号或换行，用双引号包裹
         if (typeof val === 'string' && (val.includes(',') || val.includes('"') || val.includes('\n'))) {
           val = '"' + val.replace(/"/g, '""') + '"';
         }
         return val;
       }).join(',');
       csvContent += line + '\n';
-    }
+    });
 
-    // 返回文件流
     const fileName = `患者满意度调查_${month}.csv`;
     return new Response(csvContent, {
       status: 200,
