@@ -12,16 +12,23 @@ export async function onRequest(context) {
 
     try {
       const stmt = env.DB.prepare(
-        `SELECT id AS "序号", * FROM satisfaction_records WHERE month = ? ORDER BY id ASC`
+        `SELECT id, * FROM satisfaction_records WHERE month = ? ORDER BY id ASC`
       );
       const { results } = await stmt.bind(month).all();
+
+      // 重新生成序号，从1开始
+      const dataWithNewIndex = results.map((row, index) => {
+        const newRow = { ...row };
+        newRow['序号'] = index + 1;
+        return newRow;
+      });
 
       return new Response(JSON.stringify({
         success: true,
         message: '获取成功',
         month: month,
-        headers: [], // 不再需要 headers，但保留兼容
-        data: results
+        headers: [],
+        data: dataWithNewIndex
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
@@ -49,13 +56,13 @@ export async function onRequest(context) {
 
     const action = (input.action || '').trim();
     const month = (input.month || '').trim() || new Date().toISOString().slice(0, 7);
-    const id = input['序号'] || input.id; // 前端传序号，实际是 id
+    const id = input.id; // 使用 id
 
     if (!/^\d{4}-\d{2}$/.test(month)) {
       return errorResponse('月份格式错误', 400);
     }
     if (!id || !/^\d+$/.test(id)) {
-      return errorResponse('序号参数无效', 400);
+      return errorResponse('id参数无效', 400);
     }
 
     // 处理更新
@@ -134,7 +141,7 @@ async function handleUpdate(env, month, id, input) {
     }
 
     // 返回更新后的记录
-    const selectStmt = env.DB.prepare(`SELECT id AS "序号", * FROM satisfaction_records WHERE id = ?`);
+    const selectStmt = env.DB.prepare(`SELECT id, * FROM satisfaction_records WHERE id = ?`);
     const record = await selectStmt.bind(id).first();
 
     return new Response(JSON.stringify({
