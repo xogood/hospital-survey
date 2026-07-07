@@ -363,6 +363,531 @@
         return '';
     }
 
+    function buildDisplayRow(record, index) {
+        const tr = document.createElement('tr');
+        
+        // 序号使用索引+1
+        const seqTd = document.createElement('td');
+        seqTd.textContent = index + 1;
+        tr.appendChild(seqTd);
+        
+        // 其他字段（跳过序号，因为已经手动添加）
+        const fieldsToDisplay = headers.slice(1);
+        fieldsToDisplay.forEach(field => {
+            const className = (field === '患者姓名' || field === '就诊科室' || field === '备注') ? 'text-left' : '';
+            tr.appendChild(createTextCell(record[field] || '', className));
+        });
+
+        // 操作按钮
+        const actionTd = document.createElement('td');
+        const actionWrap = document.createElement('div');
+        actionWrap.className = 'actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn-primary';
+        editBtn.textContent = '修改';
+        editBtn.addEventListener('click', () => switchToEditMode(tr, record, index));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-danger';
+        deleteBtn.textContent = '删除';
+        deleteBtn.addEventListener('click', () => deleteRow(record));
+
+        actionWrap.appendChild(editBtn);
+        actionWrap.appendChild(deleteBtn);
+        actionTd.appendChild(actionWrap);
+        tr.appendChild(actionTd);
+        return tr;
+    }
+
+    function switchToEditMode(tr, record, index) {
+        clearMessage();
+        tr.innerHTML = '';
+
+        // 序号显示
+        const seqTd = document.createElement('td');
+        seqTd.textContent = index + 1;
+        tr.appendChild(seqTd);
+
+        // 调查日期（只读）
+        tr.appendChild(createTextCell(record['调查日期'] || ''));
+
+        // 其他字段转为输入框（从患者姓名开始）
+        const editableFields = headers.slice(2); // 跳过序号和调查日期
+        editableFields.forEach(field => {
+            tr.appendChild(createInputCell(field, record[field] || ''));
+        });
+
+        // 操作按钮
+        const actionTd = document.createElement('td');
+        const actionWrap = document.createElement('div');
+        actionWrap.className = 'actions';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'btn-success';
+        saveBtn.textContent = '保存';
+        saveBtn.addEventListener('click', () => saveRow(tr, record.id));
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn-secondary';
+        cancelBtn.textContent = '取消';
+        cancelBtn.addEventListener('click', () => loadData(false));
+
+        actionWrap.appendChild(saveBtn);
+        actionWrap.appendChild(cancelBtn);
+        actionTd.appendChild(actionWrap);
+        tr.appendChild(actionTd);
+    }
+
+    async function saveRow(tr, id) {
+        const inputs = tr.querySelectorAll('[data-field]');
+        const payload = {
+            action: 'update',
+            month: monthPicker.value,
+            id: id  // 使用 id
+        };
+
+        inputs.forEach(input => {
+            payload[input.dataset.field] = input.value.trim();
+        });
+
+        const validationMessage = validateRowData(payload);
+        if (validationMessage) {
+            showMessage(validationMessage, 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/hospital/api/list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showMessage(result.message || '更新失败', 'error');
+                return;
+            }
+
+            showMessage(result.message || '更新成功', 'success');
+            await loadData(false);
+        } catch (error) {
+            showMessage('更新请求失败，请稍后重试', 'error');
+        }
+    }
+
+    async function deleteRow(record) {
+        clearMessage();
+
+        if (!confirm(`确认删除该记录吗？`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/hospital/api/list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete',
+                    month: monthPicker.value,
+                    id: record.id  // 使用 id
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showMessage(result.message || '删除失败', 'error');
+                return;
+            }
+
+            showMessage(result.message || '删除成功', 'success');
+            await loadData(false);
+        } catch (error) {
+            showMessage('删除请求失败，请稍后重试', 'error');
+        }
+    }
+
+    function renderTable(records) {
+        tableBody.innerHTML = '';
+
+        if (!records.length) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = headers.length + 1;
+            td.className = 'empty';
+            td.textContent = '当前月份暂无数据';
+            tr.appendChild(td);
+            tableBody.appendChild(tr);
+            return;
+        }
+
+        records.forEach((record, index) => {
+            tableBody.appendChild(buildDisplayRow(record, index));
+        });
+    }
+
+    async function loadData(showLoading = true) {
+        clearMessage();
+
+        const month = monthPicker.value || getCurrentMonth();
+        if (!/^\d{4}-\d{2}$/.test(month)) {
+            showMessage('请选择正确的月份', 'error');
+            return;
+        }
+
+        if (showLoading) {
+            tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="loading">正在加载数据...</td></tr>`;
+        }
+
+        try {
+            const response = await fetch(`/hospital/api/list?month=${encodeURIComponent(month)}`, {
+                method: 'GET'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showMessage(result.message || '加载失败', 'error');
+                tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="empty">加载失败</td></tr>`;
+                return;
+            }
+
+            metaInfo.textContent = `当前查看月份：${result.month}，记录数：${result.data.length}`;
+            renderTable(Array.isArray(result.data) ? result.data : []);
+        } catch (error) {
+            showMessage('加载请求失败，请稍后重试', 'error');
+            tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="empty">请求失败</td></tr>`;
+        }
+    }
+
+    function downloadCurrentMonthCsv() {
+        clearMessage();
+        const month = monthPicker.value || getCurrentMonth();
+        if (!/^\d{4}-\d{2}$/.test(month)) {
+            showMessage('请选择正确的月份', 'error');
+            return;
+        }
+        window.location.href = `/hospital/api/download?month=${encodeURIComponent(month)}`;
+        showMessage(`已开始下载 ${month} 对应的 CSV 文件`, 'success');
+    }
+
+    buildHead();
+    setDefaultMonth();
+    loadData(true);
+
+    monthPicker.addEventListener('change', () => {
+        loadData(true);
+    });
+
+    reloadBtn.addEventListener('click', () => {
+        loadData(true);
+    });
+
+    downloadBtn.addEventListener('click', downloadCurrentMonthCsv);
+</script>
+</body>
+</html>        .message {
+            display: none;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        .message.success {
+            display: block;
+            background: #edf9f0;
+            color: #127a2f;
+            border: 1px solid #b7e2c1;
+        }
+        .message.error {
+            display: block;
+            background: #fff1f0;
+            color: #c62828;
+            border: 1px solid #f3c1bd;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid #e5eaf2;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            min-width: 2000px;
+            border-collapse: collapse;
+            background: #fff;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #edf4ff;
+            color: #114a8b;
+            white-space: nowrap;
+        }
+        th, td {
+            border: 1px solid #e5eaf2;
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        td.text-left {
+            text-align: left;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+        .loading, .empty {
+            padding: 18px;
+            text-align: center;
+            color: #666;
+        }
+        .field-cell input,
+        .field-cell select,
+        .field-cell textarea {
+            min-width: 110px;
+        }
+        .field-cell.score input {
+            min-width: 70px;
+            width: 80px;
+        }
+        .field-cell.note textarea {
+            min-width: 180px;
+        }
+        .meta {
+            color: #555;
+            font-size: 13px;
+            margin: 8px 0 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>满意度数据一览</h1>
+
+    <div class="toolbar">
+        <div>
+            <label for="monthPicker">月份选择：</label>
+            <input type="month" id="monthPicker">
+        </div>
+        <div>
+            <button type="button" id="reloadBtn" class="btn-primary">刷新数据</button>
+        </div>
+        <div>
+            <button type="button" id="downloadBtn" class="btn-success">下载当前月份 CSV</button>
+        </div>
+    </div>
+
+    <div id="message" class="message"></div>
+    <div class="meta" id="metaInfo"></div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr id="tableHeadRow"></tr>
+            </thead>
+            <tbody id="tableBody">
+            <tr><td colspan="17" class="loading">正在加载数据...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const headers = [
+        '序号',
+        '调查日期',
+        '患者姓名',
+        '就诊科室',
+        '导诊/体检接待服务态度及效率',
+        '接诊医生服务态度和沟通',
+        '检验',
+        '放射',
+        '超声',
+        '心电图',
+        '神经电生物室',
+        '药房服务态度和用药指导',
+        '收费员服务态度及效率',
+        '其它',
+        '是否有收受红包情况',
+        '备注'
+    ];
+
+    const scoreFields = [
+        '导诊/体检接待服务态度及效率',
+        '接诊医生服务态度和沟通',
+        '检验',
+        '放射',
+        '超声',
+        '心电图',
+        '神经电生物室',
+        '药房服务态度和用药指导',
+        '收费员服务态度及效率',
+        '其它'
+    ];
+
+    const departmentOptions = [
+        '便民门诊', '儿科', '耳鼻喉', '耳鼻喉科', '耳鼻咽喉', '发热门诊', '妇产科', '妇科', 
+            '感染科', '骨科', '呼吸科', '急诊科', '介入科', '康复科', '康复医学', '口腔科', 
+            '老年科', '泌尿科', '泌尿外科', '内分泌', '内分泌科', '内科', '皮肤科', '普外科', 
+            '全科', '神经科', '肾内科', '睡眠呼吸', '睡眠科', '睡眠心理', '疼痛科', '体检中心', 
+            '消化科', '心内科', '心血管', '胸外科', '眼科', '造口门诊', '中医科', '肿瘤科'
+    ];
+
+    const redPacketOptions = ['否', '是'];
+
+    const monthPicker = document.getElementById('monthPicker');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const messageBox = document.getElementById('message');
+    const metaInfo = document.getElementById('metaInfo');
+    const tableHeadRow = document.getElementById('tableHeadRow');
+    const tableBody = document.getElementById('tableBody');
+
+    function getCurrentMonth() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
+    }
+
+    function setDefaultMonth() {
+        monthPicker.value = getCurrentMonth();
+    }
+
+    function showMessage(text, type = 'success') {
+        messageBox.textContent = text;
+        messageBox.className = `message ${type}`;
+    }
+
+    function clearMessage() {
+        messageBox.textContent = '';
+        messageBox.className = 'message';
+    }
+
+    function escapeDisplay(value) {
+        return value === null || value === undefined || value === '' ? '-' : value;
+    }
+
+    function buildHead() {
+        tableHeadRow.innerHTML = '';
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            tableHeadRow.appendChild(th);
+        });
+        const actionTh = document.createElement('th');
+        actionTh.textContent = '操作';
+        tableHeadRow.appendChild(actionTh);
+    }
+
+    function createTextCell(text, className = '') {
+        const td = document.createElement('td');
+        td.textContent = escapeDisplay(text);
+        if (className) td.className = className;
+        return td;
+    }
+
+    function createInputCell(field, value) {
+        const td = document.createElement('td');
+        td.className = 'field-cell';
+
+        if (field === '就诊科室') {
+            const select = document.createElement('select');
+            select.dataset.field = field;
+            const empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = '请选择';
+            select.appendChild(empty);
+            departmentOptions.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                if ((value || '') === item) option.selected = true;
+                select.appendChild(option);
+            });
+            td.appendChild(select);
+            return td;
+        }
+
+        if (field === '是否有收受红包情况') {
+            const select = document.createElement('select');
+            select.dataset.field = field;
+            redPacketOptions.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item === '' ? '可为空' : item;
+                if ((value || '') === item) option.selected = true;
+                select.appendChild(option);
+            });
+            td.appendChild(select);
+            return td;
+        }
+
+        if (field === '备注') {
+            td.classList.add('note');
+            const textarea = document.createElement('textarea');
+            textarea.dataset.field = field;
+            textarea.value = value || '';
+            td.appendChild(textarea);
+            return td;
+        }
+
+        if (scoreFields.includes(field)) {
+            td.classList.add('score');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '1';
+            input.max = '10';
+            input.step = '1';
+            input.dataset.field = field;
+            input.value = value || '';
+            td.appendChild(input);
+            return td;
+        }
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.dataset.field = field;
+        input.value = value || '';
+        td.appendChild(input);
+        return td;
+    }
+
+    function validateRowData(data) {
+        const patientName = (data['患者姓名'] || '').trim();
+        const department = (data['就诊科室'] || '').trim();
+
+        if (!patientName) {
+            return '患者姓名不能为空';
+        }
+        if (!department) {
+            return '就诊科室不能为空';
+        }
+
+        for (const field of scoreFields) {
+            const value = (data[field] || '').trim();
+            if (value !== '') {
+                const num = Number(value);
+                if (!Number.isInteger(num) || num < 1 || num > 10) {
+                    return '评分项必须为 1~10 的整数或留空';
+                }
+            }
+        }
+
+        return '';
+    }
+
     function buildDisplayRow(record) {
         const tr = document.createElement('tr');
         headers.forEach(field => {
